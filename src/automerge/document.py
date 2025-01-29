@@ -10,11 +10,11 @@ class ActorId:
     @staticmethod
     def random() -> 'ActorId':
         return ActorId(core.random_actor_id())
-    
+
 class ObjectId:
     def __init__(self, id: bytes):
         self.id = id
-        
+
 class ChangeHash:
     def __init__(self, hash: bytes):
         self.hash = hash
@@ -30,7 +30,7 @@ class ReadProxy:
         self._doc = doc
         self._obj_id = obj_id
         self._heads = heads
-        
+
     def __len__(self) -> int:
         return self._doc.length(self._obj_id, self._heads)
 
@@ -53,7 +53,7 @@ class MapReadProxy(ReadProxy, Mapping[str, ProxyThing]):
         x = self._doc.get(self._obj_id, key, self._heads)
         if x is None: raise IndexError()
         return self._maybe_wrap(x)
-    
+
     def __iter__(self) -> Iterator[str]:
         return iter(self._doc.keys(self._obj_id, self._heads))
 
@@ -67,12 +67,12 @@ class ListReadProxy(ReadProxy, Sequence[ProxyThing]):
         x = self._doc.get(self._obj_id, key, self._heads)
         if x is None: raise IndexError()
         return self._maybe_wrap(x)
-    
+
 class WriteProxy:
     _tx: core.Transaction
     _obj_id: bytes
     _heads: Optional[List[bytes]]
-    
+
     def __init__(self, tx: core.Transaction, obj_id: bytes, heads: Optional[List[bytes]]) -> None:
         self._tx = tx
         self._obj_id = obj_id
@@ -98,7 +98,7 @@ class MapWriteProxy(WriteProxy, MutableMapping[str, MutableProxyThing]):
             raise Exception("unknown ObjType")
         _, v = value
         return v
-    
+
     def __setitem__(self, key: str, value: MutableProxyThing) -> None:
         if isinstance(value, MutableMapping):
             obj_id = self._tx.put_object(self._obj_id, key, core.ObjType.Map)
@@ -122,10 +122,10 @@ class MapWriteProxy(WriteProxy, MutableMapping[str, MutableProxyThing]):
                 else:
                     t, _ = val
             self._tx.put(self._obj_id, key, t, value)
-            
+
     def __delitem__(self, key: str) -> None:
         self._tx.delete(self._obj_id, key)
-        
+
     def __iter__(self) -> Iterator[str]:
         raise NotImplemented
 
@@ -147,7 +147,7 @@ class ListWriteProxy(WriteProxy, MutableSequence[MutableProxyThing]):
             raise Exception("unknown ObjType")
         _, v = value
         return v
-    
+
     @overload
     def __setitem__(self, key: int, value: MutableProxyThing) -> None: ...
     @overload
@@ -195,7 +195,7 @@ class ListWriteProxy(WriteProxy, MutableSequence[MutableProxyThing]):
     def __delitem__(self, idx: Union[int, slice]) -> None:
         if not isinstance(idx, int): raise NotImplemented
         self._tx.delete(self._obj_id, idx)
-        
+
     def insert(self, idx: int, value: Union[core.ScalarValue, MutableMapping[str, MutableProxyThing], MutableSequence[MutableProxyThing], None]) -> None:
         if not isinstance(idx, int): raise NotImplemented
         if isinstance(value, MutableMapping):
@@ -243,8 +243,12 @@ def _infer_scalar_type(value: core.ScalarValue) -> core.ScalarType:
 
 
 class Document(MapReadProxy):
-    def __init__(self, actor_id: Optional[ActorId] = None) -> None:
-        self._doc = core.Document(actor_id.id if actor_id else None)
+    def __init__(self, actor_id: Optional[ActorId] = None, data: Optional[bytes] = None) -> None:
+        actor = actor_id.id if actor_id else None
+        if data is None:
+            self._doc = core.Document(actor)
+        else:
+            self._doc = core.Document.load(data, actor)
         super().__init__(self._doc, core.ROOT, None)
 
     def save(self) -> bytes:
@@ -254,4 +258,3 @@ class Document(MapReadProxy):
     def change(self) -> Iterator[MapWriteProxy]:
         with self._doc.transaction() as tx:
             yield MapWriteProxy(tx, core.ROOT, None)
-    

@@ -244,8 +244,11 @@ impl Document {
     }
 
     #[staticmethod]
-    fn load(bytes: &[u8]) -> PyResult<Self> {
-        let doc = am::Automerge::load(bytes).map_err(|e| PyException::new_err(e.to_string()))?;
+    fn load(bytes: &PyBytes, actor_id: Option<&[u8]>) -> PyResult<Self> {
+        let mut doc = am::Automerge::load(bytes.as_bytes()).map_err(|e| PyException::new_err(e.to_string()))?;
+        if let Some(id) = actor_id {
+            doc.set_actor(ActorId::from(id));
+        }
         Ok(Self {
             inner: Arc::new(RwLock::new(Inner::new(doc))),
         })
