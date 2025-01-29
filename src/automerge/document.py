@@ -246,7 +246,10 @@ class Document(MapReadProxy):
     def __init__(self, actor_id: Optional[ActorId] = None) -> None:
         self._doc = core.Document(actor_id.id if actor_id else None)
         super().__init__(self._doc, core.ROOT, None)
-        
+
+    def save(self) -> bytes:
+        return self._doc.save()
+
     @contextmanager
     def change(self) -> Iterator[MapWriteProxy]:
         with self._doc.transaction() as tx:
