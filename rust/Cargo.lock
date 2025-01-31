@@ -16,10 +16,9 @@ checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
 name = "automerge"
-version = "0.5.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c059747d9ef133802da22926ea54039de90f85b349a920f16a6d1573da0f2580"
+version = "0.6.0"
 dependencies = [
+ "cfg-if",
  "flate2",
  "fxhash",
  "hex",
@@ -40,7 +39,7 @@ dependencies = [
 name = "automerge"
 version = "1.0.0-rc1"
 dependencies = [
- "automerge 0.5.7",
+ "automerge 0.6.0",
  "hex",
  "pyo3",
  "thiserror",
@@ -194,9 +193,9 @@ checksum = "bfa799dd5ed20a7e349f3b4639aa80d74549c81716d9ec4f994c9b5815598306"
 
 [[package]]
 name = "itertools"
-version = "0.12.1"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba291022dbbd398a455acf126c1e341954079855bc60dfdda641363bd6922569"
+checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
 dependencies = [
  "either",
 ]
